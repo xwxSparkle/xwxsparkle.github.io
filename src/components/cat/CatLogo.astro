@@ -1,0 +1,56 @@
+---
+import {
+  CAT_BODY_PATH,
+  CAT_HEAD_PATH,
+  CAT_EYES_PATH,
+  CAT_CROSS_EYES_PATH,
+  CAT_SCARF_PATH,
+  CAT_SCARF_COLOR,
+  CAT_SCARF_WIDTH,
+} from '../../lib/cat';
+
+interface Props {
+  size?: number;
+  expression?: 'normal' | 'cross';
+  scarf?: 'monochrome' | 'theme';
+}
+const { size = 24, expression = 'normal', scarf = 'monochrome' } = Astro.props;
+const eyes = {
+  normal: CAT_EYES_PATH,
+  cross: CAT_CROSS_EYES_PATH,
+}[expression];
+---
+
+<svg
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+>
+  <path d={CAT_BODY_PATH} />
+  <path d={`${CAT_HEAD_PATH}${eyes}`} fill-rule="evenodd" />
+  <path
+    class="cat-scarf"
+    d={CAT_SCARF_PATH}
+    fill="none"
+    stroke={scarf === 'theme' ? `var(--cat-scarf-color, ${CAT_SCARF_COLOR})` : 'currentColor'}
+    stroke-width={CAT_SCARF_WIDTH}
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>
+
+<style>
+  svg {
+    flex-shrink: 0;
+    color: inherit;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cat-scarf {
+      transition: stroke 520ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+  }
+</style>

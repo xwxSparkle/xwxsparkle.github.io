@@ -1,0 +1,10 @@
+---
+import { getPublishedPosts } from '../../lib/server/content';
+import { groupPostsByTag } from '../../lib/taxonomy';
+import TaxonomyLayout from '../../layouts/TaxonomyLayout.astro';
+
+const posts = await getPublishedPosts();
+const tags = groupPostsByTag(posts);
+---
+
+<TaxonomyLayout kind="tags" count={posts.length} groups={tags} />

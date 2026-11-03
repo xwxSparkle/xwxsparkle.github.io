@@ -1,0 +1,22 @@
+---
+import { getPublishedPosts } from '../../lib/server/content';
+import { groupPostsByCategory } from '../../lib/taxonomy';
+import TaxonomyLayout from '../../layouts/TaxonomyLayout.astro';
+
+const posts = await getPublishedPosts();
+const categories = groupPostsByCategory(posts);
+---
+
+<TaxonomyLayout kind="categories" count={posts.length} groups={categories} />
+
+<script>
+  import { normalizeCategory } from '../../lib/taxonomy';
+
+  const category = new URLSearchParams(window.location.search).get('category');
+  if (category?.trim()) {
+    const name = normalizeCategory(category);
+    const link = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-category-name]'))
+      .find((entry) => entry.dataset.categoryName === name);
+    if (link) window.location.replace(`${link.href}${window.location.hash}`);
+  }
+</script>

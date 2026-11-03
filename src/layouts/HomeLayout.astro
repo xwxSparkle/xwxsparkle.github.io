@@ -1,0 +1,159 @@
+---
+import PostList from '../components/blog/PostList.astro';
+import PostCount from '../components/blog/PostCount.astro';
+import Heading from '../components/ui/Heading.astro';
+import { postPageHref, type PostPage } from '../lib/posts';
+import SiteLayout from './SiteLayout.astro';
+
+interface Props {
+  page: PostPage;
+}
+
+const { page } = Astro.props;
+const { posts, currentPage, totalPages, totalPosts, previous, next } = page;
+const pinnedPosts = posts.filter((post) => post.data.pinned);
+const latestPosts = posts.filter((post) => !post.data.pinned);
+const numbers =
+  totalPages <= 7
+    ? Array.from({ length: totalPages }, (_, index) => index + 1)
+    : [...new Set([1, currentPage - 1, currentPage, currentPage + 1, totalPages])]
+        .filter((number) => number >= 1 && number <= totalPages)
+        .sort((a, b) => a - b);
+const pageNumbers: (number | null)[] = [];
+numbers.forEach((number, index) => {
+  if (index > 0 && number - numbers[index - 1] > 1) pageNumbers.push(null);
+  pageNumbers.push(number);
+});
+---
+
+<SiteLayout
+  title={currentPage > 1 ? `Home · Page ${currentPage}` : undefined}
+  titleKey={currentPage > 1 ? 'home.pageTitle' : undefined}
+  titleParams={{ page: currentPage }}
+>
+  <Heading title="Home" titleKey="home.title" />
+
+  {pinnedPosts.length > 0 && (
+    <section aria-labelledby="pinned-heading">
+      <Heading level={2} titleId="pinned-heading" title="Pinned posts" titleKey="home.pinnedPosts" />
+      <PostList posts={pinnedPosts} pinned />
+    </section>
+  )}
+
+  {pinnedPosts.length > 0 && latestPosts.length > 0 && <hr class="section-divider" />}
+
+  {(latestPosts.length > 0 || totalPosts === 0) && (
+    <section aria-labelledby="posts-heading">
+      <Heading
+        level={2}
+        titleId="posts-heading"
+        title="Latest posts"
+        titleKey="home.latestPosts"
+      >
+        <PostCount count={totalPosts} />
+      </Heading>
+      <PostList posts={latestPosts} emptyKey="home.emptyState" />
+    </section>
+  )}
+
+  {totalPages > 1 && <hr class="section-divider" />}
+
+  {totalPages > 1 && (
+    <nav class="pagination" aria-label="Blog pages" data-i18n-aria-label="pagination.label">
+      <div class="pagination-controls">
+        {previous && (
+          <a href={previous} rel="prev" data-i18n="pagination.previous">
+            Previous
+          </a>
+        )}
+        <ol class="page-numbers">
+          {pageNumbers.map((number) => (
+            <li>
+              {number === null ? (
+                <span class="gap" aria-hidden="true">
+                  …
+                </span>
+              ) : (
+                <a
+                  href={postPageHref(number, import.meta.env.BASE_URL)}
+                  aria-current={number === currentPage ? 'page' : undefined}
+                  aria-label={`Page ${number}`}
+                  data-i18n-aria-label="pagination.page"
+                  data-i18n-params={JSON.stringify({ page: number })}
+                >
+                  {number}
+                </a>
+              )}
+            </li>
+          ))}
+        </ol>
+        {next && (
+          <a href={next} rel="next" data-i18n="pagination.next">
+            Next
+          </a>
+        )}
+      </div>
+      <p class="page-summary">
+        <span data-i18n="pagination.page" data-i18n-params={JSON.stringify({ page: currentPage })}>
+          Page {currentPage}
+        </span>{' '}
+        <span data-i18n="pagination.of" data-i18n-params={JSON.stringify({ count: totalPages })}>
+          of {totalPages}
+        </span>
+      </p>
+    </nav>
+  )}
+</SiteLayout>
+
+<style>
+  .pagination-controls,
+  .page-numbers {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .page-numbers {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pagination a,
+  .gap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.75rem;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: rgb(var(--gray));
+    font-size: 0.875rem;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .pagination a:hover {
+    background: rgb(var(--surface));
+    color: rgb(var(--foreground));
+  }
+
+  .pagination a[aria-current='page'] {
+    border-color: rgb(var(--border));
+    background: rgb(var(--surface));
+    color: rgb(var(--foreground));
+    font-weight: 600;
+  }
+
+  .page-summary {
+    margin: 0.75rem 0 0;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    text-align: center;
+  }
+</style>

@@ -1,0 +1,155 @@
+---
+import type { ImageMetadata } from 'astro';
+import SiteHead from '../components/layout/SiteHead.astro';
+import Sidebar from '../components/layout/Sidebar.astro';
+import RightSidebar from '../components/layout/RightSidebar.astro';
+import { PROFILE, SITE_DESCRIPTION, SITE_TITLE } from '../site.config';
+import { getPublishedPosts } from '../lib/server/content';
+import type { LocalizedText, TranslationKey, TranslationParams } from '../lib/i18n';
+import SidebarBackground from '../images/city-at-night-sidebar.webp?url';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: ImageMetadata;
+  titleKey?: TranslationKey;
+  titleParams?: TranslationParams;
+  descriptionKey?: TranslationKey;
+  descriptionParams?: TranslationParams;
+  titleTranslations?: LocalizedText;
+  descriptionTranslations?: LocalizedText;
+}
+
+const {
+  title = SITE_TITLE,
+  description = SITE_DESCRIPTION,
+  image,
+  titleKey,
+  titleParams,
+  descriptionKey,
+  descriptionParams,
+  titleTranslations,
+  descriptionTranslations,
+} = Astro.props;
+const currentYear = new Date().getFullYear();
+const sidebarPosts = await getPublishedPosts();
+const sidebarBackground = {
+  src: SidebarBackground,
+  width: 640,
+  height: 720,
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SiteHead
+      title={title}
+      description={description}
+      image={image}
+      titleKey={titleKey}
+      titleParams={titleParams}
+      descriptionKey={descriptionKey}
+      descriptionParams={descriptionParams}
+      titleTranslations={titleTranslations}
+      descriptionTranslations={descriptionTranslations}
+      sidebarBackground={sidebarBackground.src}
+    />
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content" data-i18n="layout.skip">
+      Skip to content
+    </a>
+    <div class="layout">
+      <Sidebar background={sidebarBackground} />
+      <div class="content" data-site-content>
+        <main id="main-content" tabindex="-1">
+          <div class="main-body">
+            <slot />
+          </div>
+          <RightSidebar posts={sidebarPosts}>
+            <slot name="toc" />
+          </RightSidebar>
+        </main>
+        <footer
+          data-i18n="layout.copyright"
+          data-i18n-params={JSON.stringify({ year: currentYear, name: PROFILE.name })}
+        >
+          &copy; {currentYear} {PROFILE.name}. All rights reserved.
+        </footer>
+      </div>
+    </div>
+  </body>
+</html>
+
+<style>
+  .skip-link {
+    position: fixed;
+    z-index: 100;
+    top: 1rem;
+    left: 1rem;
+    padding: 0.5em 1em;
+    background: rgb(var(--surface));
+    color: rgb(var(--foreground));
+    transform: translateY(calc(-100% - 1rem));
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .content {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-width: 0;
+    min-height: 100vh;
+  }
+
+  main {
+    min-width: 0;
+    width: calc(100% - 2rem);
+    max-width: 1180px;
+    margin: 1.5rem auto;
+    padding: 2rem 1.25rem;
+  }
+
+  .main-body {
+    min-width: 0;
+  }
+
+  footer {
+    padding: 2rem 1rem;
+    background: rgba(var(--background), 0.92);
+    border-top: 1px solid rgb(var(--border));
+    color: rgb(var(--gray));
+    font-size: 0.85rem;
+    text-align: center;
+  }
+
+  @media (min-width: 1200px) {
+    main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 210px;
+      align-items: start;
+      gap: 2.5rem;
+    }
+
+  }
+
+  @media (max-width: 1023px) {
+    .layout {
+      display: block;
+    }
+
+    main {
+      margin-top: 5rem;
+      scroll-margin-top: var(--mobile-sidebar-offset);
+    }
+  }
+</style>

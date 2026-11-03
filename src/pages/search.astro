@@ -1,0 +1,229 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Heading from '../components/ui/Heading.astro';
+
+const id = 'page-search';
+const searchPath = `${import.meta.env.BASE_URL}search/`;
+const indexPath = `${import.meta.env.BASE_URL}search-index.json`;
+---
+
+<SiteLayout
+  title="Search"
+  titleKey="search.title"
+  description="Search article titles, topics, and full text."
+  descriptionKey="search.description"
+>
+  <Heading title="Search" titleKey="search.title" />
+  <section
+    id={`${id}-panel`}
+    class="search-panel"
+    data-search-panel
+    data-index-url={indexPath}
+    data-search-url={searchPath}
+  >
+    <form role="search" action={searchPath} method="get">
+      <label class="sr-only" for={`${id}-input`} data-i18n="search.placeholder">
+        Search posts
+      </label>
+      <div class="search-field glass-control">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+          <circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6" />
+          <path d="m16 16 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        </svg>
+        <input
+          id={`${id}-input`}
+          name="q"
+          type="search"
+          placeholder="Search posts"
+          data-i18n-placeholder="search.placeholder"
+          autocomplete="off"
+          aria-describedby={`${id}-status`}
+        />
+        <button
+          type="button"
+          data-search-clear
+          aria-label="Clear search"
+          data-i18n-aria-label="search.clear"
+          hidden
+        >
+          ×
+        </button>
+        <button type="submit" class="submit-search glass-control" data-i18n="search.submit">
+          Search
+        </button>
+      </div>
+    </form>
+    <hr class="section-divider" data-search-divider hidden />
+    <div class="search-content">
+      <p
+        id={`${id}-status`}
+        class="search-status"
+        role="status"
+        aria-live="polite"
+        data-search-status
+      ></p>
+      <button
+        class="retry-search glass-control"
+        type="button"
+        data-search-retry
+        data-i18n="search.retry"
+        hidden
+      >
+        Try again
+      </button>
+      <ol class="search-results" data-search-results hidden></ol>
+      <noscript>
+        <p>
+          Enable JavaScript to search posts, or{' '}
+          <a href={import.meta.env.BASE_URL}>browse all posts</a>.
+        </p>
+      </noscript>
+    </div>
+  </section>
+</SiteLayout>
+
+<style>
+  .search-panel {
+    min-width: 0;
+  }
+  form {
+    margin: 0;
+  }
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+    padding: 0 6px 0 16px;
+    border: 1px solid rgb(var(--border));
+    border-radius: 999px;
+    background: var(--glass-background);
+    color: rgb(var(--gray));
+  }
+  .search-field:focus-within {
+    border-color: rgb(var(--link));
+    box-shadow: 0 0 0 3px rgba(var(--link), 0.1);
+  }
+  .search-field > svg {
+    flex-shrink: 0;
+  }
+  input {
+    flex: 1;
+    min-width: 0;
+    height: 46px;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: rgb(var(--foreground));
+    font: inherit;
+    font-size: 1rem;
+  }
+  input::placeholder {
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+  }
+  input:focus-visible {
+    outline: none;
+  }
+  input::-webkit-search-cancel-button {
+    appearance: none;
+  }
+  button {
+    flex-shrink: 0;
+    height: 36px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--glass-background);
+    color: rgb(var(--foreground));
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background: rgb(var(--gray-light));
+  }
+  button:focus-visible {
+    outline-offset: -3px;
+  }
+  [data-search-clear] {
+    width: 28px;
+    padding: 0;
+    background: transparent;
+    font-size: 1.25rem;
+  }
+  .search-status {
+    min-height: 24px;
+    margin: 0 0 var(--space-stack);
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+  }
+  .search-results {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .search-results[hidden] {
+    display: none;
+  }
+  .search-results :global(li) {
+    min-width: 0;
+  }
+  .search-results :global(a) {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 190px;
+    padding: 20px;
+    border: 1px solid rgb(var(--border));
+    border-radius: var(--radius-card);
+    background: rgb(var(--background));
+    color: inherit;
+    text-decoration: none;
+  }
+  .search-results :global(a:hover) {
+    border-color: rgb(var(--link));
+    background: rgb(var(--surface));
+  }
+  .search-results :global(h2) {
+    margin: 0 0 10px;
+    color: rgb(var(--link));
+    font-size: var(--text-item-title);
+    line-height: 1.5;
+  }
+  .search-results :global(.result-meta) {
+    margin: 0;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+  }
+  .search-results :global(.result-excerpt) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    margin: 12px 0 0;
+    color: rgb(var(--foreground));
+    font-size: 0.875rem;
+    line-height: 1.75;
+  }
+  .retry-search {
+    margin-bottom: 16px;
+  }
+  @media (max-width: 640px) {
+    .search-results {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>
+
+<script>
+  import { initSearchPanels } from '../scripts/search';
+
+  initSearchPanels();
+</script>

@@ -1,0 +1,15 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Heading from '../components/ui/Heading.astro';
+import { PROFILE } from '../site.config';
+---
+
+<SiteLayout
+  title="About"
+  titleKey="nav.about"
+  description={`About ${PROFILE.name}`}
+  descriptionKey="about.description"
+  descriptionParams={{ name: PROFILE.name }}
+>
+  <Heading title="About me" titleKey="about.heading" />
+</SiteLayout>

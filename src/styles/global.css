@@ -1,0 +1,305 @@
+:root:not([data-language='zh']) [data-post-language='zh'],
+:root[data-language='zh'] [data-post-language='en'] {
+  display: none;
+}
+
+:root {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  --sidebar-width: 272px;
+  --mobile-sidebar-offset: 4.5rem;
+  --text-page-title: 1.75rem;
+  --text-section-title: 0.9375rem;
+  --text-card-title: 1.25rem;
+  --text-item-title: 1rem;
+  --text-small-title: 0.875rem;
+  --text-heading-2: 1.375rem;
+  --text-heading-3: 1.125rem;
+  --text-heading-4: 1rem;
+  --space-section: 1.75rem;
+  --space-stack: 1rem;
+  --radius-card: 12px;
+  --radius-control: 10px;
+  --font-sans:
+    'Avenir Next', 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-brand: 'Iowan Old Style', 'Palatino Linotype', 'Songti SC', 'Noto Serif CJK SC', serif;
+  --panel-background: var(--background);
+  --panel-opacity: 0.94;
+  --sidebar-background-wash: 0.55;
+  --panel-shadow: 0 12px 40px rgba(20, 30, 50, 0.08);
+  --glass-background: rgba(var(--background), 0.26);
+  --glass-filter: blur(4px) saturate(110%);
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09), inset 0 -1px 0 rgba(var(--foreground), 0.025),
+    0 2px 10px rgba(0, 0, 0, 0.018);
+  color-scheme: light;
+  --black: 29, 29, 31;
+  --gray: 110, 110, 115;
+  --gray-light: 242, 242, 247;
+  --gray-dark: 44, 44, 46;
+  --accent: 102, 204, 255;
+  --cat-scarf-color: #66ccff;
+  --background: 255, 255, 255;
+  --surface: 245, 245, 247;
+  --foreground: 29, 29, 31;
+  --border: 224, 224, 229;
+  --link: 0, 103, 168;
+  --gray-gradient: rgba(var(--gray-light), 50%), rgb(var(--background));
+  --box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08), 0 16px 32px rgba(0, 0, 0, 0.06);
+}
+
+:root.dark {
+  --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  color-scheme: dark;
+  --black: 244, 244, 247;
+  --gray: 170, 170, 180;
+  --gray-light: 45, 45, 50;
+  --gray-dark: 224, 224, 230;
+  --background: 24, 24, 27;
+  --surface: 31, 31, 35;
+  --foreground: 232, 232, 237;
+  --border: 65, 65, 72;
+  --link: 102, 204, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    color-scheme: dark;
+    --black: 244, 244, 247;
+    --gray: 170, 170, 180;
+    --gray-light: 45, 45, 50;
+    --gray-dark: 224, 224, 230;
+    --background: 24, 24, 27;
+    --surface: 31, 31, 35;
+    --foreground: 232, 232, 237;
+    --border: 65, 65, 72;
+    --link: 102, 204, 255;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-theme-transition='colors']
+    :where(
+      body,
+      footer,
+      form,
+      section,
+      aside,
+      nav,
+      a,
+      button,
+      input,
+      textarea,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      p,
+      time,
+      code,
+      pre,
+      .glass-control,
+      .glass-panel,
+      .theme-toggle,
+      .calendar-day,
+      .sidebar-bottom
+    ),
+  :root[data-theme-transition='colors'] .sidebar::before {
+    transition:
+      background-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1),
+      text-shadow 520ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.glass-control,
+.glass-panel {
+  background-color: var(--glass-background);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+
+.glow-control {
+  text-shadow: none;
+  transition:
+    color 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glow-control svg {
+  filter: none;
+  transition: filter 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.glow-control:is(:hover, :focus-within, [aria-current='page'], [aria-pressed='true']) {
+  text-shadow:
+    0 0 4px rgba(var(--glow-color, var(--accent)), 0.3),
+    0 0 14px rgba(var(--glow-color, var(--accent)), 0.25),
+    0 0 32px rgba(var(--glow-color, var(--accent)), 0.16),
+    0 0 52px rgba(var(--glow-color, var(--accent)), 0.07);
+}
+
+.glow-control:is(:hover, :focus-within, [aria-current='page'], [aria-pressed='true']) svg {
+  filter: drop-shadow(0 0 5px rgba(var(--glow-color, var(--accent)), 0.26))
+    drop-shadow(0 0 18px rgba(var(--glow-color, var(--accent)), 0.16))
+    drop-shadow(0 0 36px rgba(var(--glow-color, var(--accent)), 0.065));
+}
+
+.glow-control:focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow-control,
+  .glow-control svg {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .glow-control:focus-visible {
+    outline: 2px solid Highlight;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --glass-background: rgba(var(--background), 0.82);
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  background: rgb(var(--background));
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  color: rgb(var(--foreground));
+  font-size: 1rem;
+  line-height: 1.7;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 0.5rem 0;
+  color: rgb(var(--black));
+  line-height: 1.2;
+}
+h1 {
+  font-size: var(--text-page-title);
+}
+h2 {
+  font-size: var(--text-heading-2);
+}
+h3 {
+  font-size: var(--text-heading-3);
+}
+h4 {
+  font-size: var(--text-heading-4);
+}
+h5 {
+  font-size: var(--text-section-title);
+}
+h6 {
+  font-size: var(--text-small-title);
+}
+strong,
+b {
+  font-weight: 700;
+}
+a {
+  color: rgb(var(--link));
+}
+a:hover {
+  color: rgb(var(--link));
+  text-decoration-thickness: 2px;
+}
+:focus-visible {
+  outline: 2px solid rgb(var(--link));
+  outline-offset: 3px;
+}
+p {
+  margin-bottom: 1em;
+}
+.prose p {
+  margin-bottom: 2em;
+}
+textarea {
+  width: 100%;
+  font-size: 16px;
+}
+input {
+  font-size: 16px;
+}
+table {
+  width: 100%;
+}
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+code {
+  padding: 2px 5px;
+  background-color: rgb(var(--gray-light));
+  border-radius: 2px;
+}
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 1.5em;
+  border-radius: 8px;
+}
+pre > code {
+  all: unset;
+}
+blockquote {
+  border-left: 4px solid rgb(var(--accent));
+  padding: 0 0 0 20px;
+  margin: 0;
+  font-size: 1.333em;
+}
+hr {
+  border: none;
+  border-top: 1px solid rgb(var(--border));
+}
+.section-divider {
+  margin: var(--space-section) 0;
+  border-top-color: rgba(var(--border), 0.7);
+}
+.sr-only {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  /* IE6, IE7 - a 0 height clip, off to the bottom right of the visible 1px box */
+  clip: rect(1px 1px 1px 1px);
+  /* maybe deprecated but we need to support legacy browsers */
+  clip: rect(1px, 1px, 1px, 1px);
+  /* modern browsers, clip-path works inwards from each corner */
+  clip-path: inset(50%);
+  /* added line to stop words getting smushed together (as they go onto separate lines and some screen readers do not understand line feeds as a space */
+  white-space: nowrap;
+}

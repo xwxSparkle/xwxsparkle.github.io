@@ -1,0 +1,134 @@
+---
+import '../../styles/global.css';
+import { createHash } from 'node:crypto';
+import FaviconSource from '../../../public/favicons/favicon-black.svg?raw';
+import type { ImageMetadata } from 'astro';
+import FallbackImage from '../../images/city-at-night.webp';
+import { SITE_TITLE } from '../../site.config';
+import {
+  translate,
+  type LocalizedText,
+  type TranslationKey,
+  type TranslationParams,
+} from '../../lib/i18n';
+
+interface Props {
+  title: string;
+  description: string;
+  image?: ImageMetadata;
+  titleKey?: TranslationKey;
+  titleParams?: TranslationParams;
+  descriptionKey?: TranslationKey;
+  descriptionParams?: TranslationParams;
+  titleTranslations?: LocalizedText;
+  descriptionTranslations?: LocalizedText;
+  sidebarBackground: string;
+}
+
+const {
+  title,
+  description,
+  image = FallbackImage,
+  titleKey,
+  titleParams = {},
+  descriptionKey,
+  descriptionParams = {},
+  titleTranslations,
+  descriptionTranslations,
+  sidebarBackground,
+} = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+const iconVersion = createHash('sha256').update(FaviconSource).digest('hex').slice(0, 10);
+const iconHref = (name: string) => `${import.meta.env.BASE_URL}favicons/${name}?v=${iconVersion}`;
+const resolvedTitle = titleKey ? translate(titleKey, 'en', titleParams) : title;
+const resolvedDescription = descriptionKey
+  ? translate(descriptionKey, 'en', descriptionParams)
+  : description;
+const pageTitle = resolvedTitle === SITE_TITLE ? resolvedTitle : `${resolvedTitle} | ${SITE_TITLE}`;
+const localizedTitles =
+  titleTranslations &&
+  Object.fromEntries(
+    Object.entries(titleTranslations).map(([language, value]) => [
+      language,
+      value === SITE_TITLE ? value : `${value} | ${SITE_TITLE}`,
+    ])
+  );
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="preload" as="image" href={sidebarBackground} type="image/webp" fetchpriority="high" />
+<link rel="icon" type="image/x-icon" href={iconHref('favicon-black.ico')} sizes="16x16 32x32 48x48 64x64" />
+<link rel="icon" type="image/png" href={iconHref('favicon-black-96x96.png')} sizes="96x96" />
+<link rel="icon" type="image/svg+xml" href={iconHref('favicon-black.svg')} sizes="any" />
+<link rel="apple-touch-icon" href={iconHref('apple-touch-icon-black.png')} sizes="180x180" />
+<link rel="manifest" href={`${import.meta.env.BASE_URL}site.webmanifest?v=${iconVersion}`} />
+<meta name="generator" content={Astro.generator} />
+
+<link rel="canonical" href={canonicalURL} />
+
+<title
+  data-i18n-page-title={titleKey}
+  data-i18n-params={JSON.stringify(titleParams)}
+  data-i18n-site-title={SITE_TITLE}
+  data-localized={localizedTitles && JSON.stringify(localizedTitles)}
+>{pageTitle}</title>
+<meta
+  name="description"
+  content={resolvedDescription}
+  data-i18n-content={descriptionKey}
+  data-i18n-params={JSON.stringify(descriptionParams)}
+  data-localized-content={descriptionTranslations && JSON.stringify(descriptionTranslations)}
+/>
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalURL} />
+<meta
+  property="og:title"
+  content={pageTitle}
+  data-i18n-page-title={titleKey}
+  data-i18n-params={JSON.stringify(titleParams)}
+  data-i18n-site-title={SITE_TITLE}
+  data-localized-content={localizedTitles && JSON.stringify(localizedTitles)}
+/>
+<meta
+  property="og:description"
+  content={resolvedDescription}
+  data-i18n-content={descriptionKey}
+  data-i18n-params={JSON.stringify(descriptionParams)}
+  data-localized-content={descriptionTranslations && JSON.stringify(descriptionTranslations)}
+/>
+<meta property="og:image" content={new URL(image.src, canonicalURL)} />
+
+<meta name="twitter:card" content="summary_large_image" />
+
+<script is:inline>
+  (() => {
+    let language = 'en';
+    try {
+      language = localStorage.getItem('language') === 'zh' ? 'zh' : 'en';
+    } catch {
+      // English remains available when browser storage is blocked.
+    }
+    document.documentElement.dataset.language = language;
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en';
+
+    let savedTheme;
+    try {
+      savedTheme = localStorage.getItem('theme');
+    } catch {
+      // The system preference still works when storage is unavailable.
+    }
+
+    const preference = savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'auto';
+    const theme =
+      preference === 'auto'
+        ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        : preference;
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.themePreference = preference;
+  })();
+</script>

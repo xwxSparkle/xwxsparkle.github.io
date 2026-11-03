@@ -1,0 +1,404 @@
+---
+import {
+  CAT_HEAD_PATH,
+  CAT_BODY_PATH,
+  CAT_EYES_PATH,
+  CAT_SQUINT_EYES_PATH,
+  CAT_CLOSED_EYES_PATH,
+  CAT_SCARF_PATH,
+  CAT_SCARF_COLOR,
+  CAT_SCARF_WIDTH,
+} from '../../lib/cat';
+import CatListening from './CatListening.astro';
+
+const eyePaths = CAT_EYES_PATH.split(/(?=M)/);
+const closedEyePaths = CAT_CLOSED_EYES_PATH.split(/(?=M)/);
+const eyeSides = ['left', 'right'] as const;
+---
+
+<div class="site-cat" data-site-cat>
+  <button
+    class="cat-button glow-control"
+    type="button"
+    aria-label="Say hello to the cat"
+    data-i18n-aria-label="cat.label"
+    title="Say hello to the cat"
+    data-i18n-title="cat.label"
+    data-cat-button
+    aria-controls="cat-message"
+    aria-expanded="false"
+  >
+    <svg
+      viewBox="0 0 24 24"
+      width="104"
+      height="104"
+      fill="currentColor"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <defs>
+        <clipPath id="site-cat-door-clip" clipPathUnits="userSpaceOnUse">
+          <rect x="-20" y="-20" width="47" height="64" />
+        </clipPath>
+        <mask
+          id="site-cat-back-occlusion"
+          maskUnits="userSpaceOnUse"
+          x="-20"
+          y="-20"
+          width="64"
+          height="64"
+          style="mask-type: luminance;"
+        >
+          <rect x="-20" y="-20" width="64" height="64" fill="white" />
+          <path d={CAT_BODY_PATH} fill="black" />
+          <path d={CAT_HEAD_PATH} fill="black" />
+        </mask>
+        <mask
+          id="site-cat-cutouts"
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="24"
+          height="24"
+          style="mask-type: luminance;"
+        >
+          <rect width="24" height="24" fill="white" />
+          <g class="cat-eyes" fill="black" data-cat-eyes>
+            {eyeSides.map((side, index) => (
+              <g class={`cat-eye-${side}`}>
+                <path class="cat-normal-eyes" d={eyePaths[index]} />
+                <path
+                  class="cat-closed-eyes"
+                  d={closedEyePaths[index]}
+                  fill="none"
+                  stroke="black"
+                  stroke-width="0.5"
+                  stroke-linecap="round"
+                />
+              </g>
+            ))}
+            <path class="cat-squint-eyes" d={CAT_SQUINT_EYES_PATH} />
+          </g>
+        </mask>
+      </defs>
+      <g class="portal-door">
+        <g class="portal-screen">
+          <path
+            d="M26 0.5L27.8 1.15V23.15L26 22.5Z"
+            fill="rgba(18, 24, 35, 0.24)"
+            stroke="currentColor"
+            stroke-width="0.25"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M26 0.5L25.4 1.1V23.1L26 22.5"
+            fill="rgba(244, 244, 246, 0.18)"
+            stroke="currentColor"
+            stroke-opacity="0.55"
+            stroke-width="0.18"
+            stroke-linejoin="round"
+          />
+        </g>
+        <g
+          class="portal-star"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="0.4"
+          stroke-linecap="round"
+        >
+          <path d="M21 11.5H33M27 -0.5V23.5" />
+        </g>
+      </g>
+      <g clip-path="url(#site-cat-door-clip)">
+        <g class="cat-traveler" data-cat-traveler>
+          <g class="cat-breathe">
+            <g class="cat-pose" data-cat-pose>
+              <g data-cat-back-layer mask="url(#site-cat-back-occlusion)" aria-hidden="true"></g>
+              <path d={CAT_BODY_PATH} />
+              <path d={CAT_HEAD_PATH} mask="url(#site-cat-cutouts)" />
+              <path
+                class="cat-scarf"
+                d={CAT_SCARF_PATH}
+                fill="none"
+                stroke={`var(--cat-scarf-color, ${CAT_SCARF_COLOR})`}
+                stroke-width={CAT_SCARF_WIDTH}
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <CatListening />
+            </g>
+          </g>
+        </g>
+      </g>
+    </svg>
+  </button>
+  <p
+    id="cat-message"
+    class="cat-message"
+    data-cat-message
+    data-cat-reply=""
+    aria-hidden="true"
+    hidden
+  ></p>
+  <p class="sr-only" data-cat-announcement role="status" aria-live="polite" aria-atomic="true"></p>
+</div>
+
+<style>
+  .site-cat {
+    display: grid;
+    grid-template-rows: 112px 20px;
+    align-content: center;
+    justify-items: center;
+    gap: 0;
+    min-height: 148px;
+    padding-top: 16px;
+    width: 100%;
+    color: rgb(var(--foreground));
+    font-family: var(--font-sans);
+    font-weight: 400;
+    letter-spacing: normal;
+  }
+
+  .cat-button {
+    display: grid;
+    place-items: center;
+    align-self: center;
+    width: 120px;
+    height: 112px;
+    margin: 0;
+    padding: 4px 8px;
+    border: 0;
+    border-radius: 1rem;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  svg {
+    display: block;
+    overflow: visible;
+  }
+
+  .cat-eyes {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .cat-traveler {
+    transform-box: view-box;
+    transform-origin: 40% 94.17%;
+  }
+  .portal-door {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .portal-screen {
+    transform: scale(0);
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .portal-star {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .site-cat[data-cat-portal-active='true'] .portal-door {
+    opacity: 0.9;
+  }
+  .site-cat[data-cat-portal-open='true'] .portal-screen {
+    transform: scale(1);
+  }
+  .site-cat[data-cat-portal-away='true'] .cat-traveler {
+    opacity: 0;
+  }
+
+  .cat-squint-eyes,
+  .cat-closed-eyes {
+    opacity: 0;
+  }
+
+  .cat-normal-eyes,
+  .cat-closed-eyes {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .cat-eye-left {
+    --eye-shift: -0.76px;
+  }
+
+  .cat-eye-right {
+    --eye-shift: 0.76px;
+  }
+
+  .cat-closed-eyes {
+    transform: scaleX(0.55);
+  }
+
+  .site-cat[data-cat-expression='squint'] .cat-normal-eyes {
+    opacity: 0;
+  }
+
+  .site-cat[data-cat-expression='squint'] .cat-squint-eyes {
+    opacity: 1;
+  }
+  .site-cat[data-cat-listening-phase='listening'] .cat-normal-eyes,
+  .site-cat[data-cat-listening-phase='listening'] .cat-squint-eyes {
+    opacity: 0;
+  }
+  .site-cat[data-cat-listening-phase='listening'] .cat-normal-eyes {
+    transform: translateX(var(--eye-shift)) scale(1.35, 0.09);
+  }
+  .site-cat[data-cat-listening-phase='listening'] .cat-closed-eyes {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  .cat-breathe,
+  .cat-pose {
+    transform-box: fill-box;
+    transform-origin: center bottom;
+  }
+
+  .cat-message {
+    width: 100%;
+    height: 20px;
+    margin: 0;
+    padding: 0 4px;
+    overflow: hidden;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    font-family: var(--font-sans);
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .cat-message[hidden] {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cat-scarf {
+      transition: stroke 520ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .cat-breathe {
+      animation: cat-breathe 4.8s ease-in-out infinite;
+    }
+
+    .cat-button.is-speaking .cat-breathe {
+      animation: none;
+    }
+    .site-cat[data-cat-portal-active='true'] .cat-breathe {
+      animation: none;
+    }
+    .site-cat[data-cat-listening] .cat-breathe {
+      animation-play-state: paused;
+    }
+    .site-cat[data-cat-listening] .cat-normal-eyes {
+      transition:
+        transform 260ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 100ms ease 130ms;
+    }
+    .site-cat[data-cat-listening] .cat-closed-eyes {
+      transition:
+        transform 280ms cubic-bezier(0.34, 1.36, 0.64, 1) 95ms,
+        opacity 100ms ease 105ms;
+    }
+    .site-cat[data-cat-listening-phase='listening'] .cat-pose {
+      animation: cat-listening 1600ms ease-in-out infinite;
+    }
+    .site-cat[data-cat-portal-phase='opening'] .portal-screen {
+      animation: tv-open 280ms ease-out both;
+    }
+    .site-cat[data-cat-portal-phase='closing'] .portal-screen {
+      animation: tv-close 280ms ease-in both;
+    }
+    .site-cat[data-cat-portal-phase='opening'] .portal-star {
+      animation: tv-spark-in 280ms ease-out both;
+    }
+    .site-cat[data-cat-portal-phase='closing'] .portal-star {
+      animation: tv-spark-out 280ms ease-in both;
+    }
+  }
+
+  @keyframes tv-open {
+    0% {
+      transform: scale(0.02);
+    }
+    40% {
+      transform: scale(1, 0.025);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes tv-close {
+    0% {
+      transform: scale(1);
+    }
+    55% {
+      transform: scale(1, 0.025);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+  @keyframes tv-spark-in {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+    25% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+  @keyframes tv-spark-out {
+    0%,
+    100% {
+      opacity: 0;
+      transform: scale(0);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes cat-listening {
+    0%,
+    50%,
+    100% {
+      transform: rotate(0deg) translateY(0);
+    }
+    25% {
+      transform: rotate(-0.6deg) translateY(-0.06px);
+    }
+    75% {
+      transform: rotate(0.6deg) translateY(-0.06px);
+    }
+  }
+
+  @keyframes cat-breathe {
+    0%,
+    100% {
+      transform: scaleY(1);
+    }
+    50% {
+      transform: scaleY(1.012);
+    }
+  }
+</style>
+
+<script>
+  import { initCats } from '../../scripts/cat';
+
+  initCats();
+</script>

@@ -1,0 +1,225 @@
+---
+import PostCount from '../blog/PostCount.astro';
+import type { BlogPost } from '../../lib/posts';
+import {
+  categoryHref,
+  categoryLabel,
+  categoryTranslationKey,
+  groupPostsByCategory,
+  groupPostsByTag,
+  tagHref,
+  tagLabel,
+} from '../../lib/taxonomy';
+
+interface Props {
+  posts: readonly BlogPost[];
+}
+
+const { posts } = Astro.props;
+const groups = [
+  {
+    key: 'nav.categories',
+    title: 'Categories',
+    items: groupPostsByCategory(posts).map(({ name, posts }) => ({
+      label: categoryLabel(name),
+      translationKey: categoryTranslationKey(name),
+      translations: undefined,
+      href: categoryHref(name, import.meta.env.BASE_URL),
+      count: posts.length,
+    })),
+  },
+  {
+    key: 'nav.tags',
+    title: 'Tags',
+    items: groupPostsByTag(posts).map(({ name, posts }) => ({
+      label: `#${tagLabel(name)}`,
+      translationKey: undefined,
+      translations: { en: `#${tagLabel(name)}`, zh: `#${tagLabel(name, 'zh')}` },
+      href: tagHref(name, import.meta.env.BASE_URL),
+      count: posts.length,
+    })),
+  },
+];
+---
+
+<aside
+  class="right-sidebar"
+  aria-label="Page sidebar"
+  data-i18n-aria-label="layout.rightSidebar"
+>
+  <div class="right-sidebar-content">
+    <div class="taxonomy-groups">
+      {groups.map(({ key, title, items }) => (
+        <details class:list={['taxonomy-group', { 'tag-group': key === 'nav.tags' }]} open>
+          <summary>
+            <span class="group-title" data-i18n={key}>{title}</span>
+            <span class="disclosure-label collapse-label" data-i18n="sidebar.collapse">Collapse</span>
+            <span class="disclosure-label expand-label" data-i18n="sidebar.expand">Expand</span>
+            <svg class="disclosure-icon" viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+              <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </summary>
+          {items.length > 0 ? (
+          <nav aria-label={title} data-i18n-aria-label={key}>
+            <ul>
+              {items.map(({ label, translationKey, translations, href, count }) => (
+                <li>
+                  <a href={href} class="glow-control">
+                    <span data-i18n={translationKey} data-localized={translations && JSON.stringify(translations)}>
+                      {label}
+                    </span>
+                    <PostCount count={count} variant="badge" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          ) : (
+            <p class="taxonomy-empty" data-i18n="tags.empty">No tags yet.</p>
+          )}
+        </details>
+      ))}
+    </div>
+    <slot />
+  </div>
+</aside>
+
+<style>
+  .right-sidebar {
+    min-width: 0;
+    margin-top: var(--space-section);
+    padding-top: var(--space-section);
+    border-top: 1px solid rgba(var(--border), 0.7);
+  }
+
+  .right-sidebar-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-section);
+    min-width: 0;
+  }
+
+  .taxonomy-groups {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-section);
+    min-width: 0;
+  }
+
+  .taxonomy-group {
+    min-width: 0;
+  }
+
+  .taxonomy-empty {
+    margin: 0.5rem 0 0;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 36px;
+    color: rgb(var(--foreground));
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .group-title {
+    margin-right: auto;
+    font-size: var(--text-small-title);
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .disclosure-label {
+    color: rgb(var(--gray));
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+
+  .disclosure-icon {
+    flex-shrink: 0;
+    color: rgb(var(--gray));
+  }
+
+  .collapse-label,
+  .taxonomy-group[open] .expand-label {
+    display: none;
+  }
+
+  .taxonomy-group[open] .collapse-label {
+    display: inline;
+  }
+
+  .taxonomy-group[open] .disclosure-icon {
+    transform: rotate(180deg);
+  }
+
+  ul {
+    margin: 0.25rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 32px;
+    padding: 0.3rem 0;
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+
+  a > span:first-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .tag-group a {
+    color: rgb(var(--link));
+  }
+
+  a:is(:hover, :focus-visible) {
+    color: rgb(var(--accent));
+  }
+
+  @media (min-width: 600px) and (max-width: 1199px) {
+    .taxonomy-groups {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .right-sidebar {
+      align-self: stretch;
+      margin-top: 0;
+      padding: 0 0 0 1.25rem;
+      border-top: 0;
+      border-left: 1px solid rgb(var(--border));
+    }
+
+    .right-sidebar-content {
+      position: sticky;
+      top: 2rem;
+      max-height: calc(100vh - 4rem);
+      max-height: calc(100dvh - 4rem);
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+
+    .taxonomy-groups,
+    .right-sidebar-content > :global(.toc) {
+      flex: 0 0 auto;
+    }
+  }
+</style>

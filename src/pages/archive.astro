@@ -1,0 +1,196 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { getPublishedPosts, getPostTranslation, getPostExcerpts } from '../lib/server/content';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import FormattedDate from '../components/ui/FormattedDate.astro';
+import PostCalendar from '../components/blog/PostCalendar.astro';
+import PostTags from '../components/blog/PostTags.astro';
+import EmptyState from '../components/ui/EmptyState.astro';
+import Heading from '../components/ui/Heading.astro';
+import { categoryHref, categoryLabel, categoryTranslationKey } from '../lib/taxonomy';
+
+const posts = await getPublishedPosts();
+const months = new Map<string, Map<string, CollectionEntry<'blog'>[]>>();
+for (const post of posts) {
+  const day = post.data.pubDate.toISOString().slice(0, 10);
+  const month = day.slice(0, 7);
+  if (!months.has(month)) months.set(month, new Map());
+  const days = months.get(month)!;
+  if (!days.has(day)) days.set(day, []);
+  days.get(day)!.push(post);
+}
+const monthLabel = (month: string, language: 'en' | 'zh') =>
+  new Intl.DateTimeFormat(language === 'zh' ? 'zh-CN' : 'en', {
+    year: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(new Date(`${month}-01T00:00:00Z`));
+---
+
+<SiteLayout
+  title="Archive"
+  titleKey="nav.archive"
+  description="A chronological record of the posts."
+  descriptionKey="archive.intro"
+>
+  <Heading title="Archive" titleKey="nav.archive" />
+
+  <PostCalendar posts={posts} />
+  <hr class="section-divider" />
+
+  {posts.length ? (
+    <div class="archive">
+      {Array.from(months, ([month, days]) => (
+        <section class="archive-month" aria-labelledby={`month-${month}`}>
+          <h2
+            id={`month-${month}`}
+            data-localized={JSON.stringify({
+              en: monthLabel(month, 'en'),
+              zh: monthLabel(month, 'zh'),
+            })}
+          >
+            {monthLabel(month, 'en')}
+          </h2>
+          {Array.from(days, ([day, entries]) => (
+            <section class="archive-day" id={`day-${day}`} aria-labelledby={`date-${day}`}>
+              <h3 class="day-heading" id={`date-${day}`}>
+                <FormattedDate date={new Date(`${day}T00:00:00Z`)} />
+              </h3>
+              <ol class="events">
+                {entries.map((post) => {
+                  const english = getPostTranslation(post)?.frontmatter;
+                  const titles = { en: english?.title ?? post.data.title, zh: post.data.title };
+                  const excerpts = getPostExcerpts(post);
+                  return (
+                    <li>
+                      <article class="event glass-panel">
+                        <div class="event-meta">
+                          <span data-i18n="archive.published">Published a post</span>
+                          <a
+                            href={categoryHref(post.data.category, import.meta.env.BASE_URL)}
+                            data-i18n={categoryTranslationKey(post.data.category)}
+                          >
+                            {categoryLabel(post.data.category)}
+                          </a>
+                        </div>
+                        <h4>
+                          <a
+                            href={`${import.meta.env.BASE_URL}blog/${post.id}/`}
+                            data-localized={JSON.stringify(titles)}
+                          >
+                            {titles.en}
+                          </a>
+                        </h4>
+                        <p class="excerpt" data-localized={JSON.stringify(excerpts)}>
+                          {excerpts.en}
+                        </p>
+                        <PostTags tags={post.data.tags} />
+                      </article>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
+        </section>
+      ))}
+    </div>
+  ) : (
+    <EmptyState messageKey="archive.empty" />
+  )}
+</SiteLayout>
+
+<style>
+  .archive {
+    min-width: 0;
+  }
+  .archive-month + .archive-month {
+    margin-top: var(--space-section);
+  }
+  h2 {
+    margin: 0 0 1.5rem;
+    font-size: var(--text-section-title);
+    font-weight: 600;
+  }
+  .archive-day {
+    position: relative;
+    margin-left: 0.4rem;
+    padding: 0 0 2rem 1.5rem;
+    border-left: 1px solid rgb(var(--border));
+    scroll-margin-top: 2rem;
+  }
+  .archive-day:last-child {
+    padding-bottom: 0.5rem;
+  }
+  .archive-day::before {
+    content: '';
+    position: absolute;
+    top: 0.45rem;
+    left: -0.3rem;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: #40a65b;
+    box-shadow: 0 0 0 4px rgb(var(--background));
+  }
+  .day-heading {
+    margin: 0 0 0.8rem;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .events {
+    display: grid;
+    gap: 0.9rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .event {
+    min-width: 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid rgba(var(--border), 0.65);
+    border-radius: var(--radius-card);
+  }
+  .event-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.65rem;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+  }
+  .event-meta a {
+    color: inherit;
+    text-decoration: none;
+  }
+  h4 {
+    margin: 0.5rem 0;
+    font-size: var(--text-item-title);
+    line-height: 1.4;
+  }
+  h4 a {
+    color: rgb(var(--foreground));
+    text-decoration: none;
+  }
+  a:hover {
+    color: rgb(var(--link));
+  }
+  .excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    max-height: 3.3em;
+    margin: 0;
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  @media (max-width: 1023px) {
+    .archive-day {
+      scroll-margin-top: var(--mobile-sidebar-offset);
+    }
+  }
+</style>

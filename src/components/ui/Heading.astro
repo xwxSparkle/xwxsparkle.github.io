@@ -1,0 +1,114 @@
+---
+import {
+  translate,
+  type LocalizedText,
+  type TranslationKey,
+  type TranslationParams,
+} from '../../lib/i18n';
+
+interface Props {
+  title: string;
+  titleId?: string;
+  titleKey?: TranslationKey;
+  titleParams?: TranslationParams;
+  titleTranslations?: LocalizedText;
+  level?: 1 | 2;
+  back?: { href: string; labelKey: TranslationKey };
+  divider?: boolean;
+}
+
+const {
+  title,
+  titleId,
+  titleKey,
+  titleParams,
+  titleTranslations,
+  level = 1,
+  back,
+  divider = level === 1,
+} = Astro.props;
+const TitleTag = level === 1 ? 'h1' : 'h2';
+---
+
+<header class:list={['heading', { 'heading--section': level === 2 }]}>
+  {back && (
+    <a class="back-link" href={back.href} data-i18n={back.labelKey}>
+      {translate(back.labelKey)}
+    </a>
+  )}
+  <TitleTag
+    id={titleId}
+    data-page-heading={level === 1 || undefined}
+    data-i18n={titleKey}
+    data-i18n-params={titleParams && JSON.stringify(titleParams)}
+    data-localized={titleTranslations && JSON.stringify(titleTranslations)}
+  >
+    {title}
+  </TitleTag>
+  {Astro.slots.has('default') && <div class="heading-content"><slot /></div>}
+</header>
+{divider && <hr class="section-divider" />}
+
+<style>
+  .heading {
+    min-width: 0;
+    margin-bottom: var(--space-section);
+  }
+
+  h1,
+  h2 {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  h1 {
+    font-size: var(--text-page-title);
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+    scroll-margin-top: 2rem;
+  }
+
+  h2 {
+    font-size: var(--text-section-title);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .heading-content {
+    margin-top: var(--space-stack);
+  }
+
+  .heading--section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem var(--space-stack);
+    margin-bottom: var(--space-stack);
+  }
+
+  .heading--section .heading-content {
+    margin-top: 0;
+  }
+
+  .back-link {
+    display: block;
+    width: fit-content;
+    margin-bottom: var(--space-stack);
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+
+  .back-link:is(:hover, :focus-visible) {
+    color: rgb(var(--link));
+  }
+
+  @media (max-width: 1023px) {
+    h1 {
+      scroll-margin-top: var(--mobile-sidebar-offset);
+    }
+  }
+</style>

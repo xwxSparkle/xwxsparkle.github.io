@@ -1,0 +1,49 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import CatLogo from '../components/cat/CatLogo.astro';
+import Heading from '../components/ui/Heading.astro';
+---
+
+<SiteLayout
+  title="Page not found"
+  titleKey="error.title"
+  description="The page you requested could not be found."
+  descriptionKey="error.description"
+>
+  <section class="not-found" aria-labelledby="error-title">
+    <div class="error-illustration" aria-hidden="true">
+      <CatLogo expression="cross" scarf="theme" size={160} />
+    </div>
+    <Heading
+      title="404 — Page not found"
+      titleKey="error.heading"
+      titleId="error-title"
+      divider={false}
+    />
+    <a class="return-home glow-control" href={import.meta.env.BASE_URL} data-i18n="error.home">
+      Return home
+    </a>
+  </section>
+</SiteLayout>
+
+<style>
+  .not-found {
+    max-width: 620px;
+    padding: 24px 0 48px;
+  }
+
+  .error-illustration {
+    width: 160px;
+    height: 160px;
+    margin-bottom: var(--space-section);
+    color: inherit;
+  }
+
+  .return-home {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: rgb(var(--link));
+    text-decoration: none;
+  }
+</style>

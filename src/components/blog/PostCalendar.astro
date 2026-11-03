@@ -1,0 +1,318 @@
+---
+import type { BlogPost } from '../../lib/posts';
+import { CALENDAR_WEEKS, buildPostCalendar } from '../../lib/calendar';
+import { translate } from '../../lib/i18n';
+
+interface Props {
+  posts: readonly BlogPost[];
+}
+
+const calendar = buildPostCalendar(Astro.props.posts);
+const countKey = calendar.totalPosts === 1 ? 'calendar.posts.one' : 'calendar.posts.other';
+const archivePath = `${import.meta.env.BASE_URL}archive/`;
+const weekdays = [
+  { row: 2, en: 'Mon', zh: '一' },
+  { row: 4, en: 'Wed', zh: '三' },
+  { row: 6, en: 'Fri', zh: '五' },
+];
+---
+
+<section class="post-calendar glass-panel" aria-labelledby="post-calendar-title">
+  <header>
+    <h2 id="post-calendar-title" data-i18n="calendar.title">
+      Writing activity
+    </h2>
+    <p
+      class="calendar-range"
+      data-i18n="calendar.range"
+      title={`${calendar.startDate} – ${calendar.today}`}
+    >
+      Last year
+    </p>
+  </header>
+
+  <div class="calendar-layout">
+    <div class="calendar-weekdays" aria-hidden="true">
+      {weekdays.map(({ row, en, zh }) => (
+        <span style={`grid-row: ${row}`} data-localized={JSON.stringify({ en, zh })}>
+          {en}
+        </span>
+      ))}
+    </div>
+    <div
+      class="calendar-scroll"
+      data-calendar-scroll
+      tabindex="0"
+      role="group"
+      aria-label="Writing activity"
+      data-i18n-aria-label="calendar.title"
+    >
+      <div class="calendar-content" style={`--calendar-weeks: ${CALENDAR_WEEKS}`}>
+        <div class="calendar-months" aria-hidden="true">
+          {calendar.months.map(({ week, en, zh }) => (
+            <span
+              class:list={['month-label', { 'month-label-end': week >= CALENDAR_WEEKS - 2 }]}
+              style={`grid-column: ${week + 1}`}
+              data-localized={JSON.stringify({ en, zh })}
+            >
+              {en}
+            </span>
+          ))}
+        </div>
+
+        <div class="calendar-grid">
+          {calendar.weeks.map((days) => (
+            <div class="calendar-week">
+              {days.map((day) => {
+                const key = day.count === 1 ? 'calendar.day.one' : 'calendar.day.other';
+                const params = { date: day.date, count: day.count };
+                const label = translate(key, 'en', params);
+                return day.count > 0 ? (
+                  <a
+                    class="calendar-day"
+                    data-level={day.level}
+                    href={`${archivePath}#day-${day.date}`}
+                    title={label}
+                    aria-label={label}
+                    data-i18n-title={key}
+                    data-i18n-aria-label={key}
+                    data-i18n-params={JSON.stringify(params)}
+                  />
+                ) : (
+                  <span
+                    class="calendar-day"
+                    data-level="0"
+                    data-future={day.future ? 'true' : undefined}
+                    title={label}
+                    data-i18n-title={key}
+                    data-i18n-params={JSON.stringify(params)}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p
+      class="calendar-total"
+      data-i18n={countKey}
+      data-i18n-params={JSON.stringify({ count: calendar.totalPosts })}
+    >
+      {translate(countKey, 'en', { count: calendar.totalPosts })}
+    </p>
+    <div class="calendar-legend" aria-hidden="true">
+      <span data-i18n="calendar.less">Less</span>
+      <div class="legend-levels">
+        {[0, 1, 2, 3, 4].map((level) => (
+          <span class="calendar-day" data-level={level} />
+        ))}
+      </div>
+      <span data-i18n="calendar.more">More</span>
+    </div>
+  </footer>
+</section>
+
+<style>
+  .post-calendar {
+    --calendar-cell: 10px;
+    --calendar-0: rgba(var(--gray), 0.12);
+    --calendar-1: #9be9a8;
+    --calendar-2: #40c463;
+    --calendar-3: #30a14e;
+    --calendar-4: #216e39;
+    width: 100%;
+    min-width: 0;
+    padding: 1rem;
+    border: 1px solid rgba(var(--border), 0.65);
+    border-radius: 1rem;
+    background: var(--glass-background, rgba(var(--background), 0.7));
+    box-shadow: var(--glass-shadow, none);
+    -webkit-backdrop-filter: var(--glass-filter, none);
+    backdrop-filter: var(--glass-filter, none);
+    font-family: var(--font-sans);
+  }
+
+  :global(.dark) .post-calendar {
+    --calendar-1: #0e4429;
+    --calendar-2: #006d32;
+    --calendar-3: #26a641;
+    --calendar-4: #39d353;
+  }
+
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  h2 {
+    margin: 0;
+    color: rgb(var(--foreground));
+    font-size: var(--text-small-title);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: normal;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .calendar-range {
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .calendar-layout {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 8px;
+    min-width: 0;
+    margin-top: 0.75rem;
+  }
+
+  .calendar-weekdays {
+    display: grid;
+    grid-template-rows: repeat(7, var(--calendar-cell));
+    gap: 3px;
+    align-content: start;
+    align-items: center;
+    margin-top: 21px;
+    color: rgb(var(--gray));
+    font-size: 0.625rem;
+    line-height: 1;
+  }
+
+  .calendar-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .calendar-content {
+    width: max-content;
+    min-width: max-content;
+    padding: 3px 3px 8px;
+  }
+
+  .calendar-months,
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--calendar-weeks), var(--calendar-cell));
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .calendar-months {
+    height: 14px;
+    margin-bottom: 4px;
+    color: rgb(var(--gray));
+    font-size: 0.625rem;
+    line-height: 14px;
+  }
+
+  .month-label {
+    justify-self: start;
+    white-space: nowrap;
+  }
+
+  .month-label-end {
+    justify-self: end;
+  }
+
+  .calendar-week {
+    display: grid;
+    grid-template-rows: repeat(7, var(--calendar-cell));
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .calendar-day {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--calendar-0);
+    box-shadow: inset 0 0 0 1px rgba(var(--foreground), 0.04);
+  }
+
+  .calendar-day[data-level='1'] {
+    background: var(--calendar-1);
+  }
+
+  .calendar-day[data-level='2'] {
+    background: var(--calendar-2);
+  }
+
+  .calendar-day[data-level='3'] {
+    background: var(--calendar-3);
+  }
+
+  .calendar-day[data-level='4'] {
+    background: var(--calendar-4);
+  }
+
+  .calendar-day[data-future] {
+    opacity: 0.35;
+  }
+
+  a.calendar-day:hover {
+    box-shadow: inset 0 0 0 1px rgba(var(--foreground), 0.5);
+  }
+
+  a.calendar-day:focus-visible {
+    outline: 2px solid rgb(var(--foreground));
+    outline-offset: 2px;
+  }
+
+  footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+    color: rgb(var(--gray));
+    font-size: 0.6875rem;
+    line-height: 1.4;
+  }
+
+  .calendar-total {
+    font-size: 0.75rem;
+  }
+
+  .calendar-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+  }
+
+  .legend-levels {
+    display: grid;
+    grid-template-columns: repeat(5, var(--calendar-cell));
+    gap: 2px;
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-calendar-scroll]').forEach((calendar) => {
+    requestAnimationFrame(() => {
+      if (calendar.scrollWidth > calendar.clientWidth) {
+        calendar.scrollLeft = calendar.scrollWidth - calendar.clientWidth;
+      }
+    });
+  });
+</script>

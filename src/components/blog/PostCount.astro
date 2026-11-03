@@ -1,0 +1,46 @@
+---
+import { translate } from '../../lib/i18n';
+
+interface Props {
+  count: number;
+  variant?: 'text' | 'badge';
+}
+
+const { count, variant = 'text' } = Astro.props;
+const key = count === 1 ? 'post.count.one' : 'post.count.other';
+const params = JSON.stringify({ count });
+const label = translate(key, 'en', { count });
+---
+
+<span
+  class:list={['post-count', { 'post-count--badge': variant === 'badge' }]}
+  data-i18n={variant === 'text' ? key : undefined}
+  data-i18n-aria-label={variant === 'badge' ? key : undefined}
+  data-i18n-params={params}
+  aria-label={variant === 'badge' ? label : undefined}
+>{variant === 'badge' ? count : label}</span>
+
+<style>
+  .post-count {
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .post-count--badge {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 0.25rem;
+    border-radius: 5px;
+    background: rgba(var(--gray), 0.08);
+    color: inherit;
+    font-size: 0.6875rem;
+    line-height: 1;
+  }
+</style>

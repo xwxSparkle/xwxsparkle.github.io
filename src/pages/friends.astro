@@ -1,0 +1,103 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import EmptyState from '../components/ui/EmptyState.astro';
+import Heading from '../components/ui/Heading.astro';
+import { FRIEND_LINKS } from '../site.config';
+
+const friends = FRIEND_LINKS.flatMap((friend) => {
+  try {
+    const url = new URL(friend.url);
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return [];
+    return [{ ...friend, url: url.href, hostname: url.hostname }];
+  } catch {
+    return [];
+  }
+});
+---
+
+<SiteLayout
+  title="Friends"
+  titleKey="nav.friends"
+  description="Friends and their corners of the web."
+  descriptionKey="friends.intro"
+>
+  <Heading title="Friends" titleKey="nav.friends" />
+
+  {friends.length > 0 ? (
+    <ul class="friend-list" hidden>
+      {friends.map(({ name, url, description, hostname }) => (
+        <li>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${name} (opens in a new tab)`}
+            data-i18n-aria-label="link.newTab"
+            data-i18n-params={JSON.stringify({ name })}
+          >
+            <h2>{name}</h2>
+            {description && <p>{description}</p>}
+            <span>{hostname}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <EmptyState messageKey="friends.empty" />
+  )}
+</SiteLayout>
+
+<style>
+  .friend-list:not([hidden]) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    min-width: 0;
+  }
+
+  a {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 1.5rem;
+    border: 1px solid rgb(var(--border));
+    border-radius: var(--radius-card);
+    background: rgba(var(--background), 0.92);
+    color: rgb(var(--foreground));
+    text-decoration: none;
+  }
+
+  a:hover {
+    background: rgb(var(--surface));
+  }
+
+  h2 {
+    margin-bottom: 0.5rem;
+    font-size: var(--text-item-title);
+  }
+
+  a p {
+    margin: 0 0 1rem;
+    color: rgb(var(--gray));
+    font-size: 0.9rem;
+  }
+
+  a span {
+    margin-top: auto;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 960px) {
+    .friend-list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

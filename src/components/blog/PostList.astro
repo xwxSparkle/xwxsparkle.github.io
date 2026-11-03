@@ -1,0 +1,229 @@
+---
+import { Image } from 'astro:assets';
+import FallbackImage from '../../images/city-at-night.webp';
+import EmptyState from '../ui/EmptyState.astro';
+import FormattedDate from '../ui/FormattedDate.astro';
+import type { BlogPost } from '../../lib/posts';
+import type { TranslationKey } from '../../lib/i18n';
+import { categoryLabel, categoryTranslationKey } from '../../lib/taxonomy';
+import { getPostTranslation, getPostExcerpts } from '../../lib/server/content';
+
+interface Props {
+  posts: readonly BlogPost[];
+  pinned?: boolean;
+  emptyKey?: TranslationKey | null;
+  variant?: 'card' | 'compact';
+}
+
+const { posts, pinned = false, emptyKey = 'home.emptyState', variant = 'card' } = Astro.props;
+---
+
+<div class:list={['post-list', { 'post-list--compact': variant === 'compact' }]}>
+  {posts.map((post) => {
+    const {
+      title,
+      heroImage = FallbackImage,
+      pubDate,
+      category: postCategory,
+    } = post.data;
+    const titleId = `post-${post.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+    const href = `${import.meta.env.BASE_URL}blog/${post.id}/`;
+    const english = getPostTranslation(post)?.frontmatter;
+    const titles = { en: english?.title ?? title, zh: title };
+    const excerpts = getPostExcerpts(post);
+
+    return (
+      <article class:list={['post-card', { 'is-pinned': pinned }]}>
+        <a class="card-link" href={href} aria-labelledby={titleId}>
+          <div class="card-body">
+            <div class="meta">
+              {pinned && (
+                <span class="pinned-label">
+                  <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                    <path d="M10.72 1.22a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06l-.47-.47-3.4 3.4.56 2.25a.75.75 0 0 1-1.26.71L7.4 9.42l-4.87 4.87a.5.5 0 0 1-.71-.71l4.87-4.87-1.75-1.75a.75.75 0 0 1 .71-1.26l2.25.56 3.4-3.4-.58-.58a.75.75 0 0 1 0-1.06Z" />
+                  </svg>
+                  <span data-i18n="post.pinned">Pinned</span>
+                </span>
+              )}
+              <FormattedDate date={pubDate} />
+              {variant === 'card' && postCategory && (
+                <span class="category" data-i18n={categoryTranslationKey(postCategory)}>
+                  {categoryLabel(postCategory)}
+                </span>
+              )}
+            </div>
+            <h2 id={titleId} data-localized={JSON.stringify(titles)}>{titles.en}</h2>
+            <p class="card-excerpt" data-localized={JSON.stringify(excerpts)}>{excerpts.en}</p>
+          </div>
+          {variant === 'card' && (
+            <div class="card-image">
+              <Image src={heroImage} alt="" width={800} loading="lazy" />
+            </div>
+          )}
+        </a>
+      </article>
+    );
+  })}
+  {!posts.length && emptyKey && <EmptyState messageKey={emptyKey} />}
+</div>
+
+<style>
+  .post-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-stack);
+    min-width: 0;
+  }
+
+  .post-card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid rgba(var(--border), 0.7);
+    border-radius: var(--radius-card);
+    background: rgb(var(--surface));
+  }
+
+  .card-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36%;
+    min-height: 200px;
+    color: rgb(var(--foreground));
+    text-decoration: none;
+  }
+
+  .card-link:focus-visible {
+    outline: 2px solid rgb(var(--link));
+    outline-offset: -3px;
+    border-radius: inherit;
+  }
+
+  .card-image {
+    position: relative;
+    min-width: 0;
+    min-height: 200px;
+    overflow: hidden;
+  }
+
+  .card-image :global(img) {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 15%;
+    border-radius: 0;
+    pointer-events: none;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 1.5rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: rgb(var(--gray));
+    font-size: 0.75rem;
+    line-height: 1.5;
+  }
+
+  .pinned-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: rgb(var(--link));
+    font-weight: 600;
+  }
+
+  .card-body h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: rgb(var(--foreground));
+    font-size: var(--text-card-title);
+    line-height: 1.4;
+    letter-spacing: -0.025em;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .card-excerpt {
+    display: -webkit-box;
+    overflow: hidden;
+    max-height: 3.3em;
+    margin: 8px 0 0;
+    color: rgb(var(--gray));
+    font-size: 0.8125rem;
+    line-height: 1.65;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .card-link:is(:hover, :focus-visible) h2 {
+    color: rgb(var(--link));
+  }
+
+  .post-list--compact {
+    gap: 0;
+  }
+
+  .post-list--compact .post-card {
+    overflow: visible;
+    border: 0;
+    border-bottom: 1px solid rgba(var(--border), 0.6);
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .post-list--compact .post-card:last-child {
+    border-bottom: 0;
+  }
+
+  .post-list--compact .card-link {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+  }
+
+  .post-list--compact .card-link:focus-visible {
+    outline-offset: 3px;
+  }
+
+  .post-list--compact .card-body {
+    padding: 1.25rem 0;
+  }
+
+  .post-list--compact .card-body h2 {
+    font-size: var(--text-item-title);
+    line-height: 1.5;
+  }
+
+  .post-list--compact :global(.empty-state) {
+    padding: 1.5rem 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  @media (max-width: 639px) {
+    .card-link {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .card-image {
+      order: -1;
+      min-height: 0;
+      aspect-ratio: 16 / 9;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+    }
+  }
+</style>

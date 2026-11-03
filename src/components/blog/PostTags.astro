@@ -1,0 +1,49 @@
+---
+import { tagHref, normalizeTags, tagLabel } from '../../lib/taxonomy';
+
+interface Props {
+  tags: readonly string[];
+}
+
+const postTags = normalizeTags(Astro.props.tags);
+---
+
+{postTags.length > 0 && (
+  <ul class="post-tags" aria-label="Post tags" data-i18n-aria-label="post.tags">
+    {postTags.map((tag) => (
+      <li>
+        <a
+          href={tagHref(tag, import.meta.env.BASE_URL)}
+          data-i18n="tag.label"
+          data-i18n-params={JSON.stringify({ tag })}
+        >
+          #{tagLabel(tag)}
+        </a>
+      </li>
+    ))}
+  </ul>
+)}
+
+<style>
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.75rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  a {
+    display: block;
+    color: rgb(var(--link));
+    font-size: 0.75rem;
+    line-height: 1.5;
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: rgb(var(--link));
+    opacity: 0.8;
+  }
+</style>

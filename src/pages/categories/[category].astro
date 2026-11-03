@@ -1,0 +1,25 @@
+---
+import type { BlogPost } from '../../lib/posts';
+import { getPublishedPosts } from '../../lib/server/content';
+import { categoryRouteParam, groupPostsByCategory } from '../../lib/taxonomy';
+import PostList from '../../components/blog/PostList.astro';
+import TaxonomyLayout from '../../layouts/TaxonomyLayout.astro';
+
+export async function getStaticPaths() {
+  return groupPostsByCategory(await getPublishedPosts()).map(({ name, posts }) => ({
+    params: { category: categoryRouteParam(name) },
+    props: { category: name, posts },
+  }));
+}
+
+interface Props {
+  category: string;
+  posts: BlogPost[];
+}
+
+const { category, posts } = Astro.props;
+---
+
+<TaxonomyLayout kind="categories" subject={category} count={posts.length}>
+  <PostList posts={posts} variant="compact" emptyKey="categories.noPosts" />
+</TaxonomyLayout>

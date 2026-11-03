@@ -1,0 +1,158 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  titleId: string;
+  headings: Heading[];
+  variant: 'desktop' | 'mobile';
+  articleId: string;
+  titleTranslations?: { en: string; zh: string };
+}
+
+const { title, titleId, variant, articleId, titleTranslations } = Astro.props;
+const headings = [
+  { depth: 1, slug: titleId, text: title },
+  ...Astro.props.headings.filter(({ depth }) => depth === 2 || depth === 3),
+];
+---
+
+{variant === 'desktop' ? (
+  <nav
+    class="toc toc--desktop"
+    aria-label="Table of contents"
+    data-i18n-aria-label="toc.title"
+    data-toc
+    data-toc-for={articleId}
+  >
+    <p class="toc-title" data-i18n="toc.title">
+      Contents
+    </p>
+    <ol>
+      {headings.map(({ depth, slug, text }) => (
+        <li class:list={{ nested: depth === 3 }}>
+          <a
+            href={`#${slug}`}
+            data-toc-link
+            data-localized={
+              slug === titleId && titleTranslations ? JSON.stringify(titleTranslations) : undefined
+            }
+          >
+            {slug === titleId ? (titleTranslations?.en ?? text) : text}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+) : (
+  <details class="toc toc--mobile" data-toc data-toc-for={articleId}>
+    <summary data-i18n="toc.title">Contents</summary>
+    <nav aria-label="Table of contents" data-i18n-aria-label="toc.title">
+      <ol>
+        {headings.map(({ depth, slug, text }) => (
+          <li class:list={{ nested: depth === 3 }}>
+            <a
+              href={`#${slug}`}
+              data-toc-link
+              data-localized={
+                slug === titleId && titleTranslations
+                  ? JSON.stringify(titleTranslations)
+                  : undefined
+              }
+            >
+              {slug === titleId ? (titleTranslations?.en ?? text) : text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </details>
+)}
+
+<style>
+  .toc {
+    min-width: 0;
+    margin-bottom: 2rem;
+    font-size: 0.8125rem;
+    line-height: 1.25;
+  }
+
+  .toc--desktop {
+    display: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .toc-title {
+    margin: 0 0 1rem;
+    color: rgb(var(--foreground));
+    font-size: inherit;
+    font-weight: 600;
+  }
+
+  ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li.nested {
+    padding-left: 0.75rem;
+  }
+
+  a {
+    display: block;
+    padding: 0.4rem 0;
+    color: rgb(var(--gray));
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  a:hover,
+  a[aria-current='location'] {
+    color: rgb(var(--link));
+  }
+
+  a[aria-current='location'] {
+    font-weight: 600;
+  }
+
+  .toc--mobile {
+    padding: 0.85rem 0 0.85rem 1rem;
+    border-left: 1px solid rgb(var(--border));
+  }
+
+  summary {
+    color: rgb(var(--foreground));
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .toc--mobile nav {
+    margin-top: 0.85rem;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  @media (min-width: 1200px) {
+    .toc--desktop {
+      display: block;
+    }
+
+    .toc--mobile {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { initTableOfContents } from '../../scripts/navigation';
+
+  initTableOfContents();
+</script>

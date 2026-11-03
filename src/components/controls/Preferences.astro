@@ -1,0 +1,199 @@
+<div class="preferences" data-preferences hidden>
+  <div role="group" aria-label="Language" data-i18n-aria-label="language.label">
+    <button
+      class="glow-control"
+      type="button"
+      lang="zh-CN"
+      data-language-option="zh"
+      aria-pressed="false"
+      title="Switch to Chinese"
+      data-i18n-title="language.chinese"
+    >中文</button>
+    <button
+      class="glow-control"
+      type="button"
+      lang="en"
+      data-language-option="en"
+      aria-pressed="true"
+      title="Switch to English"
+      data-i18n-title="language.english"
+    >EN</button>
+  </div>
+  <div
+    class="theme-toggle"
+    role="group"
+    aria-label="Color theme"
+    data-i18n-aria-label="theme.label"
+  >
+    <button
+      class="glow-control"
+      type="button"
+      data-theme-option="auto"
+      aria-pressed="false"
+      title="Follow system appearance"
+      data-i18n-title="theme.system"
+      data-i18n="theme.auto"
+    >Auto</button>
+    <button
+      class="glow-control"
+      type="button"
+      data-theme-option="light"
+      aria-pressed="false"
+      data-i18n="theme.light"
+    >Light</button>
+    <button
+      class="glow-control"
+      type="button"
+      data-theme-option="dark"
+      aria-pressed="false"
+      data-i18n="theme.dark"
+    >Dark</button>
+  </div>
+</div>
+
+<style>
+  .preferences:not([hidden]),
+  [role='group'] {
+    display: flex;
+    align-items: center;
+  }
+
+  .preferences {
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  [role='group'] {
+    flex-shrink: 0;
+    gap: 2px;
+    padding: 3px;
+    white-space: nowrap;
+  }
+
+  button {
+    height: 30px;
+    padding: 0 4px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: rgb(var(--gray));
+    font: 500 0.75rem/1.2 var(--font-sans);
+    cursor: pointer;
+  }
+
+  [data-language-option] {
+    min-width: 34px;
+    padding: 0 6px;
+  }
+
+  button:is(:hover, :focus-within, [aria-pressed='true']) {
+    color: rgb(var(--accent));
+  }
+</style>
+
+<script>
+  import { applyLanguage, currentLanguage } from '../../scripts/i18n';
+
+  type ThemePreference = 'auto' | 'light' | 'dark';
+  const themePreference = (value: unknown): ThemePreference =>
+    value === 'light' || value === 'dark' ? value : 'auto';
+
+  function savedPreference(key: string, fallback: string): string {
+    try {
+      return localStorage.getItem(key) ?? fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  function savePreference(key: string, value: string): void {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // Choices remain usable for this page when storage is blocked.
+    }
+  }
+
+  const root = document.documentElement;
+  const groups = document.querySelectorAll<HTMLElement>('[data-preferences]');
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let preference = themePreference(root.dataset.themePreference ?? savedPreference('theme', 'auto'));
+  let transitionTimeout: number | undefined;
+
+  const stopTransition = () => {
+    window.clearTimeout(transitionTimeout);
+    transitionTimeout = undefined;
+    root.removeAttribute('data-theme-transition');
+  };
+
+  const applyTheme = (animate = false) => {
+    const theme = preference === 'auto' ? (systemTheme.matches ? 'dark' : 'light') : preference;
+    const transition = animate && root.dataset.theme !== theme && !reducedMotion.matches;
+    stopTransition();
+    if (transition) {
+      root.dataset.themeTransition = 'colors';
+      // Establish the transition before changing the theme's computed colors.
+      void root.offsetWidth;
+    }
+    root.classList.toggle('dark', theme === 'dark');
+    root.dataset.theme = theme;
+    root.dataset.themePreference = preference;
+    groups.forEach((group) => {
+      group.querySelectorAll<HTMLButtonElement>('[data-theme-option]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.dataset.themeOption === preference));
+      });
+    });
+    if (transition) transitionTimeout = window.setTimeout(stopTransition, 560);
+  };
+
+  groups.forEach((group) => {
+    group.addEventListener('click', (event) => {
+      const button = event.target instanceof Element ? event.target.closest('button') : null;
+      if (!button || !group.contains(button)) return;
+      const language = button.dataset.languageOption;
+      const theme = button.dataset.themeOption;
+      if (language === 'en' || language === 'zh') {
+        applyLanguage(language);
+        savePreference('language', language);
+      } else if (theme === 'auto' || theme === 'light' || theme === 'dark') {
+        preference = theme;
+        applyTheme(true);
+        savePreference('theme', theme);
+      }
+    });
+    group.hidden = false;
+  });
+
+  applyLanguage(currentLanguage());
+  applyTheme();
+  systemTheme.addEventListener('change', () => {
+    if (preference === 'auto') applyTheme(true);
+  });
+  reducedMotion.addEventListener('change', () => {
+    if (reducedMotion.matches) stopTransition();
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key !== 'language' && event.key !== 'theme' && event.key !== null) return;
+    try {
+      if (event.storageArea && event.storageArea !== localStorage) return;
+    } catch {
+      // A storage restriction must not disable the current page's controls.
+    }
+    if (event.key === 'language' || event.key === null) {
+      applyLanguage(event.newValue === 'zh' ? 'zh' : 'en');
+    }
+    if (event.key === 'theme' || event.key === null) {
+      preference = themePreference(event.newValue);
+      applyTheme(true);
+    }
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    applyLanguage(savedPreference('language', currentLanguage()) === 'zh' ? 'zh' : 'en');
+    preference = themePreference(savedPreference('theme', preference));
+    applyTheme();
+  });
+</script>

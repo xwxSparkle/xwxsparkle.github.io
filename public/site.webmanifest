@@ -1,0 +1,21 @@
+{
+  "name": "Haruki Scarfy",
+  "short_name": "Scarfy",
+  "icons": [
+    {
+      "src": "./favicons/web-app-manifest-black-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./favicons/web-app-manifest-black-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display": "standalone"
+}

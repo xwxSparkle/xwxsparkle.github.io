@@ -1,0 +1,23 @@
+---
+import { translate, type TranslationKey } from '../../lib/i18n';
+
+interface Props {
+  messageKey: TranslationKey;
+}
+
+const { messageKey } = Astro.props;
+---
+
+<p class="empty-state" data-i18n={messageKey}>{translate(messageKey)}</p>
+
+<style>
+  .empty-state {
+    margin: 0;
+    padding: 1.25rem;
+    border: 1px solid rgb(var(--border));
+    border-radius: var(--radius-card);
+    color: rgb(var(--gray));
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+</style>
