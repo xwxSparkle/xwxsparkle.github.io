@@ -1,0 +1,89 @@
+---
+import { blogTitle } from '../lib/blog';
+
+interface Props {
+  section?: string;
+}
+
+const { section } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{section ? `${section} · ${blogTitle}` : blogTitle}</title>
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body>
+    <div class="column">
+      {section && (
+        <nav aria-label="Breadcrumb">
+          <a href={import.meta.env.BASE_URL}>Home</a>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{section}</span>
+        </nav>
+      )}
+      <main>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    color-scheme: dark;
+    background: #111213;
+    color: #d6d6d6;
+    font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
+    font-size: 100%;
+    line-height: 1.5;
+  }
+
+  body {
+    margin: 0;
+  }
+
+  .column {
+    max-width: 38rem;
+    margin: clamp(2.5rem, 8vw, 4.375rem) auto;
+    padding-inline: 1.25rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    margin: 0 0 1rem;
+  }
+
+  p, ul {
+    margin: 0 0 1rem;
+  }
+
+  a {
+    color: #66ccff;
+    text-decoration: none;
+  }
+
+  a:hover, a:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+  }
+
+  a:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  nav[aria-label='Breadcrumb'] {
+    display: flex;
+    align-items: baseline;
+    gap: 0.65ch;
+    margin-bottom: 1.5rem;
+    color: #aaa;
+    font-size: 0.8125rem;
+  }
+</style>

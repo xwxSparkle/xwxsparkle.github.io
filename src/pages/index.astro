@@ -1,0 +1,27 @@
+---
+import introduction from '../../public/theBegining.txt?raw';
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { blogTitle, sections } from '../lib/blog';
+
+const [greeting, ...paragraphs] = introduction.trim().split(/\r?\n/).filter(Boolean);
+const links = new Map(sections.map(({ slug, title }) => [
+  title.toLowerCase(), `${import.meta.env.BASE_URL}${slug}/`,
+]));
+const filmTitle = 'I Want to Eat Your Pancreas';
+const terms = [filmTitle, ...links.keys()].map((word) => word.replace('.', '\\.'));
+const inlineTerms = new RegExp(`\\b(${terms.join('|')})(?!\\w)`, 'g');
+---
+
+<BlogLayout>
+  <article>
+    <h1>{blogTitle}</h1>
+    <p><strong>{greeting}</strong></p>
+    {paragraphs.map((paragraph) => (
+      <p>{paragraph.split(inlineTerms).map((word) => {
+        if (word === filmTitle) return <cite>{word}</cite>;
+        const href = links.get(word);
+        return href ? <a href={href}>{word}</a> : word;
+      })}</p>
+    ))}
+  </article>
+</BlogLayout>

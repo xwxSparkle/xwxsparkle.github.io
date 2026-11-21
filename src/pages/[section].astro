@@ -1,0 +1,29 @@
+---
+import type { MarkdownInstance } from 'astro';
+import BlogLayout from '../layouts/BlogLayout.astro';
+import { sections } from '../lib/blog';
+
+export function getStaticPaths() {
+  return sections.map(({ slug, title }) => ({
+    params: { section: slug },
+    props: { title },
+  }));
+}
+
+const { title } = Astro.props;
+const prefix = `${import.meta.env.BASE_URL}${Astro.params.section}/`;
+const posts = Object.values(import.meta.glob<MarkdownInstance<{ title: string }>>(
+  './*/*.md', { eager: true },
+)).filter((post) => post.url?.startsWith(prefix));
+---
+
+<BlogLayout section={title}>
+  <h1>{title}</h1>
+  {posts.length ? (
+    <ul>
+      {posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+    </ul>
+  ) : (
+    <p>No posts yet.</p>
+  )}
+</BlogLayout>
