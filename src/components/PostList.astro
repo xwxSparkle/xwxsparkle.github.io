@@ -1,0 +1,85 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import PostDate from './PostDate.astro';
+import { pageHref } from '../lib/blog';
+import { getPostPreview } from '../lib/post-preview';
+
+interface Props {
+  posts: CollectionEntry<'blog'>[];
+}
+
+const { posts } = Astro.props;
+---
+
+{posts.length > 0 ? (
+  <ul class="post-list" aria-label="文章">
+    {posts.map((post) => {
+      const preview = getPostPreview(post);
+      return (
+        <li>
+          <a class="post-link" href={pageHref(post.id)} aria-label={post.data.title}>
+            <span class="post-text">
+              <span class="post-heading">
+                <strong>{post.data.title}</strong>
+                <PostDate date={post.data.date} />
+              </span>
+              {preview && <span class="excerpt">{preview}</span>}
+            </span>
+            <span aria-hidden="true">→</span>
+          </a>
+        </li>
+      );
+    })}
+  </ul>
+) : (
+  <p>还没有文章。</p>
+)}
+
+<style>
+  .post-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .post-list li {
+    border-top: 1px solid #363839;
+  }
+
+  .post-link {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 0.75rem;
+  }
+
+  .post-link:hover,
+  .post-link:focus-visible {
+    text-decoration: none;
+  }
+
+  .post-link:hover strong,
+  .post-link:focus-visible strong {
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+  }
+
+  .post-text {
+    overflow-wrap: anywhere;
+  }
+
+  .post-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: 0.75rem;
+  }
+
+  .excerpt {
+    display: block;
+    overflow: hidden;
+    color: #aaa;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

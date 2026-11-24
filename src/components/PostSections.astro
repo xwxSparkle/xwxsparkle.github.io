@@ -1,0 +1,38 @@
+---
+import { hastToHtml, htmlToHast, type HastNode } from 'satteri';
+
+interface Props {
+  sticky: boolean;
+}
+
+const { sticky } = Astro.props;
+let html: string | undefined;
+if (sticky) {
+  const source = await Astro.slots.render('default');
+  const tree = htmlToHast(source, { fragment: true });
+  if (tree.type === 'root') {
+    const children = tree.children;
+    tree.children = [];
+    let section: Extract<HastNode, { type: 'element' }> | undefined;
+    for (const node of children) {
+      if (node.type === 'element' && (node.tagName === 'header' || /^h[1-6]$/.test(node.tagName))) {
+        // Anchor the stationary section so links still jump to its start when the title is pinned.
+        const id = node.properties.id;
+        delete node.properties.id;
+        section = { type: 'element', tagName: 'section', properties: id ? { id } : {}, children: [] };
+        tree.children.push(section);
+      }
+      if (section && node.type !== 'doctype') {
+        section.children.push(node);
+      } else {
+        tree.children.push(node);
+      }
+    }
+    html = hastToHtml(tree);
+  } else {
+    html = source;
+  }
+}
+---
+
+{sticky ? <Fragment set:html={html} /> : <slot />}

@@ -1,0 +1,17 @@
+---
+import { getEntry, render } from 'astro:content';
+import { blogTitle } from '../lib/blog';
+import BaseLayout from './BaseLayout.astro';
+
+const entry = await getEntry('blog', 'home');
+const Content = entry?.body?.trim() ? (await render(entry)).Content : undefined;
+---
+
+<BaseLayout>
+  <article>
+    <div class="prose">
+      <header><h1>{blogTitle}</h1></header>
+      {Content && <Content />}
+    </div>
+  </article>
+</BaseLayout>

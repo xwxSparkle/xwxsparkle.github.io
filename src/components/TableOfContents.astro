@@ -1,0 +1,178 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+const topDepth = Math.min(...headings.map(({ depth }) => depth));
+---
+
+<nav class="contents" aria-label="目录" data-article-contents>
+  <strong>目录</strong>
+  <ul>
+    {headings.map(({ depth, slug, text }) => (
+      <li style={`--indent: ${depth - topDepth}em`}>
+        <a href={`#${slug}`}>{text}</a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<script>
+  for (const nav of document.querySelectorAll<HTMLElement>('[data-article-contents]')) {
+    const list = nav.querySelector('ul')!;
+    const sections = Array.from(nav.querySelectorAll('a')).flatMap((link) => {
+      const target = document.getElementById(link.getAttribute('href')!.slice(1));
+      return target ? [{ link, target }] : [];
+    });
+    if (!sections.length) continue;
+
+    const wide = window.matchMedia('(min-width: 56rem)');
+    let current: HTMLAnchorElement | undefined;
+    let frame = 0;
+    let alignRequested = true;
+    let selectedHash = window.location.hash;
+    let wasAtEnd = false;
+
+    function update() {
+      frame = 0;
+      const offset = parseFloat(getComputedStyle(sections[0].target).scrollMarginTop) + 1;
+      const atEnd = window.scrollY > 0 &&
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      let active = sections[0];
+      if (atEnd) {
+        // Several short final sections can share the same scroll position after a jump.
+        active = sections.find(({ link, target }) =>
+          link.hash === selectedHash && target.getBoundingClientRect().top >= offset - 2
+        ) ?? sections[sections.length - 1];
+      } else {
+        if (wasAtEnd) selectedHash = '';
+        for (const section of sections) {
+          if (section.target.getBoundingClientRect().top > offset) break;
+          active = section;
+        }
+      }
+      wasAtEnd = atEnd;
+      if (current !== active.link) {
+        current?.removeAttribute('aria-current');
+        current = active.link;
+        current.setAttribute('aria-current', 'location');
+      } else if (!alignRequested) {
+        return;
+      }
+
+      alignRequested = false;
+      const bounds = list.getBoundingClientRect();
+      const item = active.link.getBoundingClientRect();
+      if (!wide.matches) {
+        const delta = item.left + item.width / 2 - (bounds.left + bounds.width / 2);
+        list.scrollTo({ left: list.scrollLeft + delta });
+      } else if (list.scrollHeight > list.clientHeight) {
+        if (item.top < bounds.top) list.scrollTop += item.top - bounds.top;
+        else if (item.bottom > bounds.bottom) list.scrollTop += item.bottom - bounds.bottom;
+      }
+    }
+
+    function scheduleUpdate() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+
+    function requestAlignment() {
+      alignRequested = true;
+      scheduleUpdate();
+    }
+
+    wide.addEventListener('change', requestAlignment);
+    window.addEventListener('scroll', scheduleUpdate, { passive: true });
+    window.addEventListener('resize', requestAlignment);
+    window.addEventListener('pageshow', requestAlignment);
+    window.addEventListener('hashchange', () => {
+      selectedHash = window.location.hash;
+      requestAlignment();
+    });
+    nav.addEventListener('click', (event) => {
+      if (!(event.target instanceof Element) || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      const link = event.target.closest('a');
+      if (link) {
+        selectedHash = link.hash;
+        requestAlignment();
+      }
+    });
+    update();
+  }
+</script>
+
+<style>
+  .contents {
+    background: #111213;
+    color: #aaa;
+    font-size: 0.8125rem;
+  }
+
+  strong { color: #d6d6d6; }
+  ul { list-style: none; margin: 0; padding: 0; }
+  a { display: block; color: inherit; }
+  a[aria-current='location'] { color: #6cf; }
+  a:focus-visible { outline-offset: -1px; }
+
+  @media (width < 56rem) {
+    .contents {
+      position: fixed;
+      z-index: 2;
+      inset: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-sizing: border-box;
+      height: var(--contents-bar-height);
+      padding-block-start: env(safe-area-inset-top, 0px);
+      padding-inline: max(1.25rem, calc((100% - 38rem) / 2));
+      border-block-end: 1px solid #363839;
+    }
+
+    strong, li { flex: none; }
+
+    ul {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 1.25rem;
+      min-width: 0;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      white-space: nowrap;
+    }
+
+    a { padding-block: 0.65rem; border-block-end: 2px solid transparent; }
+    a[aria-current='location'] { border-block-end-color: currentColor; }
+  }
+
+  @media (width < 56rem) and (prefers-reduced-motion: no-preference) {
+    ul { scroll-behavior: smooth; }
+  }
+
+  @media (min-width: 56rem) {
+    .contents {
+      position: sticky;
+      grid-area: contents;
+      align-self: start;
+      top: 1.5rem;
+      border-inline-start: 1px solid #444;
+      padding-inline-start: 1rem;
+    }
+
+    ul {
+      margin-block-start: 0.6em;
+      max-height: calc(100vh - 6rem);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    li { padding-inline-start: var(--indent); }
+    li + li { margin-block-start: 0.25em; }
+    a { padding: 0.15em 0.5em; border-inline-start: 2px solid transparent; }
+    a[aria-current='location'] { border-inline-start-color: currentColor; }
+  }
+</style>

@@ -1,0 +1,72 @@
+---
+import { blogTitle, pageHref } from '../lib/blog';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  parent?: { title: string; href: string };
+  slug?: string;
+  hasContents?: boolean;
+}
+
+const { title, parent, slug, hasContents } = Astro.props;
+const canonical = new URL(pageHref(slug), Astro.site ?? Astro.url);
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title ? `${title} · ${blogTitle}` : blogTitle}</title>
+    <link rel="canonical" href={canonical} />
+  </head>
+  <body>
+    <div class:list={['column', { 'with-contents': hasContents }]}>
+      <nav aria-label="面包屑导航">
+        {title && (
+          <>
+            <a href={pageHref()}>首页</a>
+            <span aria-hidden="true">/</span>
+          </>
+        )}
+        {parent && (
+          <>
+            <a href={parent.href}>{parent.title}</a>
+            <span aria-hidden="true">/</span>
+          </>
+        )}
+        <span aria-current="page">{title ?? '首页'}</span>
+      </nav>
+      <main>
+        <slot />
+      </main>
+    </div>
+  </body>
+</html>
+
+<style>
+  @media (width < 56rem) {
+    .column.with-contents {
+      --contents-bar-height: calc(2.75rem + env(safe-area-inset-top, 0px));
+      padding-block-start: var(--contents-bar-height);
+    }
+  }
+
+  @media (min-width: 56rem) {
+    .with-contents {
+      --contents-bar-height: 0px;
+      max-width: 56rem;
+    }
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.65ch;
+    margin-bottom: 1.25rem;
+    color: #aaa;
+    overflow-wrap: anywhere;
+  }
+</style>

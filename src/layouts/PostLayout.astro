@@ -1,0 +1,62 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import PostDate from '../components/PostDate.astro';
+import PostSections from '../components/PostSections.astro';
+import TableOfContents from '../components/TableOfContents.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+  parent: { title: string; href: string };
+}
+
+const { post, parent } = Astro.props;
+const { title, date } = post.data;
+const { Content, headings } = await render(post);
+const linkedHeadings = headings.filter(({ slug }) => slug);
+const hasContents = linkedHeadings.length > 0;
+---
+
+<BaseLayout {title} {parent} slug={post.id} {hasContents}>
+  <article class:list={{ 'with-contents': hasContents }}>
+    {hasContents && <TableOfContents headings={linkedHeadings} />}
+    <div class="prose">
+      <PostSections sticky={hasContents}>
+        <header>
+          <h1>{title}</h1>
+          <PostDate {date} />
+        </header>
+        <Content />
+      </PostSections>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .with-contents .prose > :global(section) {
+    display: flow-root;
+  }
+
+  .with-contents .prose :global([id]) {
+    scroll-margin-block-start: var(--contents-bar-height);
+  }
+
+  .with-contents .prose > :global(section > :first-child) {
+    position: sticky;
+    top: var(--contents-bar-height);
+    background: #111213;
+    margin: 0 0 0.65em;
+    padding-block: 0.35em;
+  }
+
+  @media (min-width: 56rem) {
+    .with-contents {
+      display: grid;
+      grid-template-columns: minmax(0, 38rem) minmax(0, 1fr);
+      grid-template-areas: 'body contents';
+      column-gap: 2.5rem;
+    }
+
+    .prose { grid-area: body; }
+  }
+</style>

@@ -1,0 +1,91 @@
+:root {
+  color-scheme: dark;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: #111213;
+  color: #d6d6d6;
+}
+
+body {
+  margin: 0;
+  font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (pointer: coarse) {
+  body {
+    font-size: 1rem;
+  }
+}
+
+h1 {
+  font-size: 1.5em;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1.17em;
+}
+
+h3, h4, h5, h6 {
+  font-size: inherit;
+}
+
+time {
+  font-size: smaller;
+}
+
+pre, code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+main article {
+  overflow-wrap: anywhere;
+}
+
+main article > .prose > header:first-child {
+  margin-bottom: 1em;
+}
+
+main article :not(pre) > code {
+  background: #24272a;
+  border-radius: 0.2rem;
+  padding: 0.1em 0.3em;
+  overflow-wrap: anywhere;
+}
+
+main article pre {
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid #363839;
+  border-radius: 0.35rem;
+}
+
+.column {
+  max-width: 38rem;
+  margin: clamp(2.5rem, 8vw, 4.375rem) auto;
+  padding-inline: 1.25rem;
+}
+
+p, ul {
+  margin: 0 0 1em;
+}
+
+a {
+  color: #66ccff;
+  text-decoration: none;
+}
+
+a:hover, a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+a:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 3px;
+}

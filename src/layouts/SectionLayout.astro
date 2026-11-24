@@ -1,0 +1,25 @@
+---
+import { render, type CollectionEntry } from 'astro:content';
+import PostList from '../components/PostList.astro';
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  title: string;
+  entry?: CollectionEntry<'blog'>;
+  posts: CollectionEntry<'blog'>[];
+  slug: string;
+}
+
+const { title, entry, posts, slug } = Astro.props;
+const Content = entry?.body?.trim() ? (await render(entry)).Content : undefined;
+---
+
+<BaseLayout {title} {slug}>
+  <article>
+    <div class="prose">
+      <header><h1>{title}</h1></header>
+      {Content && <Content />}
+    </div>
+  </article>
+  <PostList {posts} />
+</BaseLayout>

@@ -1,0 +1,20 @@
+---
+interface Props {
+  date?: Date;
+}
+
+const { date } = Astro.props;
+---
+
+{date && (
+  <time datetime={date.toISOString().slice(0, 10)}>
+    {date.toLocaleDateString('zh-CN', { dateStyle: 'medium', timeZone: 'UTC' })}
+  </time>
+)}
+
+<style>
+  time {
+    color: #aaa;
+    white-space: nowrap;
+  }
+</style>

@@ -1,0 +1,8 @@
+---
+import SectionLayout from '../../layouts/SectionLayout.astro';
+import { getSectionPaths } from '../../lib/blog';
+
+export const getStaticPaths = getSectionPaths;
+---
+
+<SectionLayout {...Astro.props} />
